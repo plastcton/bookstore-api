@@ -1,0 +1,3 @@
+.venv/
+mariadb_data/
+__pycache__/

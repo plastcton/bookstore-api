@@ -1,0 +1,16 @@
+{
+    "name": "Project with MariaDB",
+    "dockerComposeFile": "../docker-compose.yml",
+    "service": "app",
+    "workspaceFolder": "/workspace",
+    "forwardPorts": [3306],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "mtxr.sqltools",
+                "mtxr.sqltools-driver-mysql"
+            ]
+        }
+    }
+}

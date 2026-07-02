@@ -1,0 +1,40 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/workspace:cached
+    command: sleep infinity  # <--- ОБЯЗАТЕЛЬНО sleep infinity!
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=victoria
+      - DB_PASSWORD=123
+      - DB_NAME=mariadb
+    ports:
+      - "8000:8000"
+
+  db:
+    image: mariadb:lts
+    container_name: mariadb
+    # network_mode: "host"  <--- ЗДЕСЬ ЭТОГО БЫТЬ НЕ ДОЛЖНО!
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - MARIADB_ROOT_PASSWORD=6404789
+      - MARIADB_DATABASE=mariadb
+      - MARIADB_USER=victoria
+      - MARIADB_PASSWORD=123
+    volumes:
+      - ./mariadb_data:/var/lib/mysql
+      - "./bookstore_dump.sql:/docker-entrypoint-initdb.d/dump.sql"
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+
+volumes:
+  db-data:
