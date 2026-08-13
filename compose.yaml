@@ -1,0 +1,38 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/workspace:cached
+    command: sleep infinity
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+
+  db:
+    image: mariadb:lts
+    container_name: mariadb
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=Europe/Moscow
+      - MARIADB_DATABASE=${MARIADB_DATABASE}
+      - MARIADB_USER=${MARIADB_USER}
+      - MARIADB_ROOT_PASSWORD_FILE=/run/secrets/mariadb-root-password
+      - MARIADB_PASSWORD_FILE=/run/secrets/mariadb-user-password
+    volumes:
+      - ./mariadb_data:/var/lib/mysql
+      - "./bookstore_dump.sql:/docker-entrypoint-initdb.d/dump.sql"
+    secrets:
+      - mariadb-root-password
+      - mariadb-user-password
+    ports:
+      - "3306:3306"
+
+secrets:
+  mariadb-root-password:
+    file: ./secrets/mariadb-root-password
+  mariadb-user-password:
+    file: ./secrets/mariadb-user-password

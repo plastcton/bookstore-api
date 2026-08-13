@@ -1,3 +1,5 @@
 .venv/
 mariadb_data/
 __pycache__/
+secrets/
+.env/
