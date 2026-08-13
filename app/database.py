@@ -1,7 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Исправлено имя базы на Bookstore
 DATABASE_URL = "mysql+pymysql://victoria:123@db:3306/mariadb"
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)

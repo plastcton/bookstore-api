@@ -1,13 +1,14 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 from typing import List, Optional
 from datetime import datetime
 
-# === Author ===
+# Author
 class AuthorCreate(BaseModel):
     first_name: str
     last_name: str
-    birth_date: Optional[datetime] = None  # Добавлено
-    bio_text: Optional[str] = None          # Добавлено
+    birth_date: Optional[datetime] = None
+    bio_text: Optional[str] = None
+
 
 class AuthorResponse(BaseModel):
     id: int
@@ -17,7 +18,7 @@ class AuthorResponse(BaseModel):
     bio_text: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
-# === Genre ===
+# Genre
 class GenreCreate(BaseModel):
     name: str
 
@@ -26,7 +27,7 @@ class GenreResponse(BaseModel):
     name: str
     model_config = ConfigDict(from_attributes=True)
 
-# === Book ===
+# Book
 class BookCreate(BaseModel):
     title: str
     isbn: str

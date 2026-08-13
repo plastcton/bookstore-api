@@ -25,14 +25,14 @@ def get_genres(db: Session, skip: int = 0, limit: int = 100):
 
 # === Book CRUD ===
 def create_book(db: Session, book: schemas.BookCreate):
-    # Создаем нового автора, если передан
+    # Создание нового автора
     if book.new_author:
         new_author = create_author(db, book.new_author)
         author_id = new_author.id
     else:
         author_id = book.author_id
 
-    # Создаем новые жанры, если переданы
+    # Создание новых жанров
     genre_ids = book.genre_ids.copy()
     if book.new_genres:
         for genre_name in book.new_genres:
@@ -40,7 +40,6 @@ def create_book(db: Session, book: schemas.BookCreate):
             new_genre = create_genre(db, genre)
             genre_ids.append(new_genre.id)
 
-    # Создаем книгу (ИСПРАВЛЕНО: author_id вместо auther_id)
     db_book = models.Book(
         title=book.title,
         isbn=book.isbn,

@@ -3,7 +3,7 @@ from .routers import books, authors, genres
 
 app = FastAPI(title="Bookstore API")
 
-# Подключаем роутеры
+# Подключение роутеров
 app.include_router(books.router)
 app.include_router(authors.router)
 app.include_router(genres.router)

@@ -1,0 +1,54 @@
+image: docker:29.7.1-cli
+
+stages:
+  - image
+  - test
+
+default:
+  tags:
+    - "arm64"
+
+image-job:
+  stage: image
+  script:
+    - |
+      docker build $CI_PROJECT_DIR \
+        -f $CI_PROJECT_DIR/Dockerfile \
+        -t $CI_REGISTRY/plascton/bookstore-api/devcontainer:latest
+    - docker login $CI_REGISTRY -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN
+    - docker push $CI_REGISTRY/plascton/bookstore-api/devcontainer:latest
+
+test-job:
+  stage: test
+  needs:
+    - image-job
+  image: $CI_REGISTRY/plascton/bookstore-api/devcontainer:latest
+  services:
+    - name: mariadb:lts
+      alias: db
+      variables:
+        MARIADB_ROOT_PASSWORD: "6404789"
+        MARIADB_DATABASE: mariadb
+        MARIADB_USER: victoria
+        MARIADB_PASSWORD: "123"
+        
+  variables:
+    MARIADB_ROOT_PASSWORD: "6404789"
+    MARIADB_DATABASE: mariadb
+    MARIADB_USER: victoria
+    MARIADB_PASSWORD: "123"
+
+  before_script:
+    - apt-get update && apt-get install -y mariadb-client curl
+    - |
+      for i in $(seq 1 30); do
+        mysqladmin ping -h db -u root -p"$MARIADB_ROOT_PASSWORD" --silent && break
+        echo "Waiting for DB... ($i/30)"
+        sleep 2
+      done
+    - mysql -h db -u root -p"$MARIADB_ROOT_PASSWORD" mariadb < bookstore_dump.sql
+  script:
+    - python3 -m venv .venv
+    - source ./.venv/bin/activate
+    - pip install -r requirements.txt
+    - python -m pytest test/test_api.py -v

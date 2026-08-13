@@ -7,7 +7,7 @@ class Author(Base):
     id = Column(Integer, primary_key=True, index=True)
     last_name = Column(String(100), nullable=False)
     first_name = Column(String(100), nullable=False)
-    birth_date = Column(DateTime, nullable=False, default='0000-00-00 00:00:00')
+    birth_date = Column(DateTime, nullable=False, default='0001-01-01 00:00:00')
     bio_text = Column(Text, nullable=True)
     books = relationship("Book", back_populates="author")
 
@@ -32,7 +32,6 @@ class Book(Base):
     publication_year = Column(Integer, nullable=False)
     price = Column(Numeric(10, 2), nullable=False, default=0.00)
     stock_quantity = Column(Integer, nullable=False)
-    # ИСПРАВЛЕНО: было auther_id, стало author_id
     author_id = Column(Integer, ForeignKey("authors.id", ondelete="CASCADE"))
     publisher_id = Column(Integer, ForeignKey("publisher.id", ondelete="CASCADE"))
 

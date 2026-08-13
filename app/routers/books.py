@@ -15,7 +15,11 @@ def create_book(book: schemas.BookCreate, db: Session = Depends(get_db)):
             detail="Нельзя указать одновременно author_id и new_author. Выберите что-то одно."
         )
     
+<<<<<<< HEAD
     # Валидация: нельзя передавать и genre_ids, и new_genres одновременно Вношу измененмия
+=======
+    # Валидация: нельзя передавать и genre_ids, и new_genres одновременно
+>>>>>>> develop
     if book.genre_ids and book.new_genres:
         raise HTTPException(
             status_code=400,
