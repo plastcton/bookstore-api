@@ -1,0 +1,99 @@
+name: Build and push image
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+
+jobs:
+  image-job:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build "$GITHUB_WORKSPACE" \
+            -f "$GITHUB_WORKSPACE/Dockerfile" \
+            -t ghcr.io/plastcton/bookstore-api:latest
+
+      - name: Login to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
+            -u "${{ github.actor }}" \
+            --password-stdin
+
+      - name: Push Docker image
+        run: |
+          docker push ghcr.io/plastcton/bookstore-api:latest
+  
+  test-job:
+    runs-on: ubuntu-latest
+
+    needs:
+      - image-job
+
+    permissions:
+      contents: read
+      packages: read
+
+    container:
+      image: ghcr.io/plastcton/bookstore-api:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    services:
+      db:
+        image: mariadb:lts
+        env:
+          MARIADB_ROOT_PASSWORD: ${{ secrets.MARIADB_ROOT_PASSWORD }}
+          MARIADB_DATABASE: mariadb
+          MARIADB_USER: victoria
+          MARIADB_PASSWORD: ${{ secrets.MARIADB_PASSWORD }}
+
+    env:
+      MARIADB_ROOT_PASSWORD: ${{ secrets.MARIADB_ROOT_PASSWORD }}
+      MARIADB_DATABASE: mariadb
+      MARIADB_USER: victoria
+      MARIADB_PASSWORD: ${{ secrets.MARIADB_PASSWORD }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y mariadb-client curl
+      
+      - name: Wait for database
+        run: |
+          echo "Waiting for MariaDB to be ready..."
+          for i in $(seq 1 30); do
+            if mysqladmin ping -h db -u root -p"$MARIADB_ROOT_PASSWORD" --silent --connect-timeout=2; then
+              echo "Database is ready!"
+              break
+            fi
+            
+            echo "DB not ready yet... ($i/30)"
+            sleep 2
+          done
+
+      - name: Import database dump
+        run: |
+          mysql -h db -u root -p"$MARIADB_ROOT_PASSWORD" mariadb < bookstore_dump.sql
+
+      - name: Run tests
+        run: |
+          python3 -m venv .venv
+          . ./.venv/bin/activate
+          pip install -r requirements.txt
+          python -m pytest test/test_api.py -v
