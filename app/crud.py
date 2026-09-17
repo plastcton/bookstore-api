@@ -52,7 +52,7 @@ def create_book(db: Session, book: schemas.BookCreate):
     db.add(db_book)
     db.flush()
 
-    # Добавляем жанры
+    # Добовление жанров
     for genre_id in genre_ids:
         book_genre = models.BookGenre(book_id=db_book.id, genre_id=genre_id)
         db.add(book_genre)
