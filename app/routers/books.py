@@ -22,7 +22,7 @@ def create_book(book: schemas.BookCreate, db: Session = Depends(get_db)):
             detail="Нельзя указать одновременно genre_ids и new_genres. Выберите что-то одно."
         )
     
-    # Проверяем уникальность ISBN
+    # Уникальность ISBN
     existing = db.query(crud.models.Book).filter(crud.models.Book.isbn == book.isbn).first()
     if existing:
         raise HTTPException(status_code=400, detail="Книга с таким ISBN уже существует")
@@ -41,3 +41,24 @@ def read_books(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
         response.genre_ids = [g.id for g in book.genres]
         result.append(response)
     return result
+
+
+@router.get("/{book_id}", response_model=schemas.BookResponse)
+def read_book(book_id: int, db: Session = Depends(get_db)):
+    book = crud.get_book(db, book_id)
+    response = schemas.BookResponse.model_validate(book)
+    response.genre_ids = [g.id for g in book.genres]
+    return response
+
+
+@router.patch("/{book_id}", response_model=schemas.BookResponse)
+def update_book(book_id: int, book: schemas.BookUpdate, db: Session = Depends(get_db)):
+    db_book = crud.update_book(db, book_id, book)
+    response = schemas.BookResponse.model_validate(db_book)
+    response.genre_ids = [genre.id for genre in db_book.genres]
+    return response
+
+
+@router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_book(book_id: int, db: Session = Depends(get_db)):
+    crud.delete_book(db, book_id)
